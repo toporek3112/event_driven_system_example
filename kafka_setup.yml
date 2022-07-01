@@ -1,0 +1,330 @@
+version: "3"
+
+networks:
+  event-driven-system:
+    driver: bridge
+
+services:
+  ############################################### Zookeeper Cluster ###############################################
+
+  zoo1:
+    image: bitnami/zookeeper:3.8.0
+    container_name: zoo1
+    hostname: zoo1
+    restart: always
+    ports:
+      - 2181:2181
+    environment:
+      ZOO_SERVER_ID: 1
+      ZOO_PORT_NUMBER: 2181
+      ZOO_SERVERS: 0.0.0.0:2888:3888,zoo2:2888:3888,zoo3:2888:3888
+      ZOO_ENABLE_PROMETHEUS_METRICS: "yes"
+      ZOO_ENABLE_PROMETHEUS_METRICS: 7000
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    volumes: 
+      - ./data/zookeeper/zoo1:/bitnami/zookeeper
+    networks:
+      - event-driven-system
+
+  zoo2:
+    image: bitnami/zookeeper:3.8.0
+    container_name: zoo2
+    hostname: zoo2
+    restart: always
+    ports:
+      - 2182:2181
+    environment:
+      ZOO_SERVER_ID: 2
+      ZOO_PORT_NUMBER: 2182
+      ZOO_SERVERS: zoo1:2888:3888,0.0.0.0:2888:3888,zoo3:2888:3888
+      ZOO_ENABLE_PROMETHEUS_METRICS: "yes"
+      ZOO_ENABLE_PROMETHEUS_METRICS: 7000
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    volumes: 
+      - ./data/zookeeper/zoo2:/bitnami/zookeeper
+    networks:
+      - event-driven-system
+
+  zoo3:
+    image: bitnami/zookeeper:3.8.0
+    container_name: zoo3
+    hostname: zoo3
+    restart: always
+    ports:
+      - 2183:2181
+    environment:
+      ZOO_SERVER_ID: 3
+      ZOO_PORT_NUMBER: 2183
+      ZOO_SERVERS: zoo1:2888:3888,zoo2:2888:3888,0.0.0.0:2888:3888
+      ZOO_ENABLE_PROMETHEUS_METRICS: "yes"
+      ZOO_ENABLE_PROMETHEUS_METRICS: 7000
+      ALLOW_ANONYMOUS_LOGIN: "yes"
+    volumes: 
+      - ./data/zookeeper/zoo3:/bitnami/zookeeper
+    networks:
+      - event-driven-system
+
+
+
+
+  ############################################### Kafka Cluster ###############################################
+
+  kafka1:
+    image: bitnami/kafka:3.2.0
+    container_name: kafka1
+    hostname: kafka1
+    restart: always
+    ports:
+      - 9091:9091
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
+      KAFKA_CFG_LISTENERS: LISTENER_DOCKER_INTERNAL://:19091,LISTENER_DOCKER_EXTERNAL://:9091
+      KAFKA_CFG_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19091,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9091
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_SCHEMA_REGISTRY_URL: http://kafka-connect:8083
+      KAFKA_LOG4J_LOGGERS: "kafka.authorizer.logger=INFO"
+      KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_JMX_PORT: 9991
+      # Confluent Metrics Reporter
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 2
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka2:9093
+      CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
+    volumes:
+      - ./data/kafka/kafka1:/bitnami/kafka
+    networks:
+      - event-driven-system
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+
+  kafka2:
+    image: bitnami/kafka:3.2.0
+    container_name: kafka2
+    hostname: kafka2
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
+      KAFKA_CFG_LISTENERS: LISTENER_DOCKER_INTERNAL://:19092,LISTENER_DOCKER_EXTERNAL://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka2:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_SCHEMA_REGISTRY_URL: http://kafka-connect:8083
+      KAFKA_LOG4J_LOGGERS: "kafka.authorizer.logger=INFO"
+      KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_JMX_PORT: 9992
+      # Confluent Metrics Reporter
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 2
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka2:9093
+      CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
+    volumes:
+      - ./data/kafka/kafka2:/bitnami/kafka
+    networks:
+      - event-driven-system
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3   
+      - kafka1
+
+  kafka3:
+    image: bitnami/kafka:3.2.0
+    container_name: kafka3
+    hostname: kafka3
+    ports:
+      - 9093:9093
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_CFG_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181
+      KAFKA_CFG_LISTENERS: LISTENER_DOCKER_INTERNAL://:19093,LISTENER_DOCKER_EXTERNAL://:9093
+      KAFKA_CFG_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka3:19093,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9093
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+      KAFKA_CFG_SCHEMA_REGISTRY_URL: http://kafka-connect:8083
+      KAFKA_LOG4J_LOGGERS: "kafka.authorizer.logger=INFO"
+      KAFKA_LOG4J_ROOT_LOGLEVEL: INFO
+      KAFKA_JMX_PORT: 9993
+      # Confluent Metrics Reporter
+      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 2
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092
+      CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
+      CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
+    volumes:
+      - ./data/kafka/kafka3:/bitnami/kafka
+    networks:
+      - event-driven-system
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3  
+      - kafka1
+      - kafka2
+
+
+  ############################################### Kafka Tools ###############################################
+
+  kafka-create-topics:
+    image: confluentinc/cp-server:6.2.1
+    container_name: kafka-create-topics 
+    hostname: kafka-create-topics
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    command: ["bash", "./create-topics.sh"]
+    working_dir: /scripts
+    volumes:
+      - ./scripts/kafka_scripts:/scripts
+    networks:
+      - event-driven-system
+
+  kafka-connect:
+    build: ./kafka_connect
+    container_name: kafka-connect
+    hostname: kafka-connect
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    links:
+      - kafka1
+      - kafka2
+      - kafka3
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: kafka1:19091,kafka2:19092,kafka3:19093
+      CONNECT_GROUP_ID: 1
+      CONNECT_CONFIG_STORAGE_TOPIC: connect-config
+      CONNECT_OFFSET_STORAGE_TOPIC: connect-offset
+      CONNECT_STATUS_STORAGE_TOPIC: connect-status
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_REST_ADVERTISED_HOST_NAME: localhost
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/opt/connectors"
+    networks:
+      - event-driven-system
+       
+  kafka-connect-ui:
+    container_name: kafka-connect-ui
+    image: landoop/kafka-connect-ui:0.9.7
+    container_name: kafka-connect-ui
+    hostname: kafka-connect-ui
+    ports:
+      - "8003:8000"
+    environment:
+      CONNECT_URL: "http://kafka-connect:8083"
+      PROXY: "true"
+    depends_on:
+      - kafka-connect
+    networks:
+      - event-driven-system
+
+  kafka-manager:
+    image: hlebalbau/kafka-manager:stable
+    container_name: kafka-manager
+    hostname: kafka-manager
+    ports:
+      - "9000:9000"
+    environment:
+      ZK_HOSTS: "zoo1:2181,zoo2:2181,zoo3:2181"
+      APPLICATION_SECRET: "random-secret"
+    depends_on:
+       - zoo1
+       - zoo2
+       - zoo3
+       - kafka1
+       - kafka2
+       - kafka3
+    networks:
+       - event-driven-system  
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry
+    container_name: schema-registry 
+    hostname: schema-registry
+    restart: always
+    depends_on:
+      - zoo1
+      - zoo2
+      - zoo3
+      - kafka1
+      - kafka2
+      - kafka3
+    ports:
+      - 8081:8081
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema_registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://kafka1:19092,PLAINTEXT://kafka2:19093,PLAINTEXT://kafka3:19093"
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: GET,POST,PUT,OPTIONS
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+    networks:
+     - event-driven-system
+  
+  schema-registry-ui:
+    image: landoop/schema-registry-ui
+    container_name: schema-registry-ui 
+    hostname: schema-registry-ui
+    restart: always
+    depends_on: 
+      - schema-registry
+    ports:
+      - 8000:8000
+    environment:
+      SCHEMAREGISTRY_URL: http://localhost:8081
+      ALLOW_GLOBAL: 1
+      ALLOW_TRANSITIVE: 1
+      ALLOW_DELETION: 1
+    networks:
+     - event-driven-system
+
+  control-center:
+      image: confluentinc/cp-enterprise-control-center
+      hostname: control-center
+      container_name: control-center
+      depends_on:
+        - zoo1
+        - zoo2
+        - zoo3
+        - kafka1
+        - kafka2
+        - kafka3
+        - schema-registry
+        - kafka-connect
+        # - ksqldb-server
+      ports:
+        - "9021:9021"
+      environment:
+        CONTROL_CENTER_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
+        CONTROL_CENTER_BOOTSTRAP_SERVERS: "kafka1:19091,kafka2:19092,kafka3:19093"
+        CONTROL_CENTER_CONNECT_CONNECT_CLUSTER: kafka-connect:8083
+        # CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
+        # CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
+        CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+        CONTROL_CENTER_REPLICATION_FACTOR: 3
+        CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 3
+        CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 3
+        CONFLUENT_METRICS_TOPIC_REPLICATION: 3
+        PORT: 9021
+      networks:
+        - event-driven-system
+# // Register new schema
+# curl -vs --stderr - -XPOST -i -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"schema":"{\"type\":\"record\",\"name\":\"test\",\"doc\":\"This is just a test\",\"namespace\":\"test.test\",\"fields\":[{\"name\":\"first_name\",\"type\":\"string\"},{\"name\":\"last_name\",\"type\":\"string\"}]}"}' http://schema-registry:8081/subjects/test/versions
