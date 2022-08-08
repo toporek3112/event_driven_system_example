@@ -298,8 +298,8 @@ services:
 
   control-center:
       image: confluentinc/cp-enterprise-control-center
-      hostname: control-center
       container_name: control-center
+      hostname: control-center
       depends_on:
         - zoo1
         - zoo2
@@ -326,5 +326,6 @@ services:
         PORT: 9021
       networks:
         - event-driven-system
+
 # // Register new schema
 # curl -vs --stderr - -XPOST -i -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"schema":"{\"type\":\"record\",\"name\":\"test\",\"doc\":\"This is just a test\",\"namespace\":\"test.test\",\"fields\":[{\"name\":\"first_name\",\"type\":\"string\"},{\"name\":\"last_name\",\"type\":\"string\"}]}"}' http://schema-registry:8081/subjects/test/versions
