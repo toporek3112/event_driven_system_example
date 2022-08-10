@@ -1,9 +1,9 @@
 echo "Waiting for Kafka to come online..."
 
-cub kafka-ready -b kafka1:19092 1 20
+cub kafka-ready -b kafka1:19091 1 20
 
 kafka-topics \
-  --bootstrap-server kafka1:19092 \
+  --bootstrap-server kafka1:19091 \
   --topic orders \
   --replication-factor 3 \
   --partitions 3 \
@@ -14,7 +14,7 @@ kafka-topics \
   --create
 
 kafka-topics \
-  --bootstrap-server kafka1:19092 \
+  --bootstrap-server kafka1:19091 \
   --topic orders_validation \
   --replication-factor 3 \
   --partitions 3 \
@@ -25,7 +25,7 @@ kafka-topics \
   --create
 
 kafka-topics \
-  --bootstrap-server kafka1:19092 \
+  --bootstrap-server kafka1:19091 \
   --topic validated_orders \
   --replication-factor 3 \
   --partitions 3 \
@@ -36,7 +36,7 @@ kafka-topics \
   --create
 
 kafka-topics \
-  --bootstrap-server kafka1:19092 \
+  --bootstrap-server kafka1:19091 \
   --topic customers \
   --replication-factor 3 \
   --partitions 3 \
@@ -47,7 +47,7 @@ kafka-topics \
   --create
 
 kafka-topics \
-  --bootstrap-server kafka1:19092 \
+  --bootstrap-server kafka1:19091 \
   --topic inventory \
   --replication-factor 3 \
   --partitions 3 \
