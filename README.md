@@ -3,9 +3,9 @@ This example is for my bachelor thesis
 
 ## UI's for managing the kafka cluster
 
-| UI  | Port  |
+| UI  | URL  |
 |--|--|
-| kafka-connect-ui  | 8003 |
-| kafka-manager  | 9000  |
-| schema-registry-ui  | 8000  |
-| control-center  | 9021  |
+| kafka-connect-ui  | localhost:8003 |
+| kafka-manager  | localhost:9000  |
+| schema-registry-ui  | localhost:8000  |
+| control-center  | localhost:9021  |
