@@ -1,0 +1,17 @@
+{
+  "name": "order-details_service",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js",
+    "debug": "nodemon --inspect index.js"
+  },
+  "author": "Karol Topór",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.1",
+    "kafkajs": "^2.2.0",
+    "nodemon": "^2.0.19"
+  }
+}

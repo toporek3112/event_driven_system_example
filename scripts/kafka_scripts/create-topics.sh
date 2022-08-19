@@ -15,7 +15,7 @@ kafka-topics \
 
 kafka-topics \
   --bootstrap-server kafka1:19091 \
-  --topic orders_validation \
+  --topic validated_orders \
   --replication-factor 3 \
   --partitions 3 \
   --config "cleanup.policy=compact"  \
@@ -26,7 +26,7 @@ kafka-topics \
 
 kafka-topics \
   --bootstrap-server kafka1:19091 \
-  --topic validated_orders \
+  --topic payed_orders \
   --replication-factor 3 \
   --partitions 3 \
   --config "cleanup.policy=compact"  \
@@ -34,6 +34,7 @@ kafka-topics \
   --config "segment.ms=100"  \
   --config "delete.retention.ms=100"  \
   --create
+
 
 kafka-topics \
   --bootstrap-server kafka1:19091 \
