@@ -99,10 +99,12 @@ services:
       -Dcom.sun.management.jmxremote.ssl=false"
       # Confluent Metrics Reporter
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 2
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181 
       CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka2:9093
       CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
       CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
+      CONFLUENT_METRICS_ENABLE: "true"
     volumes:
       - ./data/kafka/kafka1:/bitnami/kafka
     networks:
@@ -138,10 +140,12 @@ services:
       -Dcom.sun.management.jmxremote.ssl=false"
       # Confluent Metrics Reporter
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 2
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181 
       CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka2:9093
       CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
       CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
+      CONFLUENT_METRICS_ENABLE: "true"
     volumes:
       - ./data/kafka/kafka2:/bitnami/kafka
     networks:
@@ -178,10 +182,12 @@ services:
       -Dcom.sun.management.jmxremote.ssl=false"
       # Confluent Metrics Reporter
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 2
+      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
+      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181 
       CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092
       CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
       CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
+      CONFLUENT_METRICS_ENABLE: "true"
     volumes:
       - ./data/kafka/kafka3:/bitnami/kafka
     networks:
