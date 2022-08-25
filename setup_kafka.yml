@@ -101,7 +101,7 @@ services:
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
       CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181 
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka2:9093
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:19091,kafka2:19092,kafka2:19093
       CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
       CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
       CONFLUENT_METRICS_ENABLE: "true"
@@ -142,7 +142,7 @@ services:
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
       CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181 
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka2:9093
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:19091,kafka2:19092,kafka2:19093
       CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
       CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
       CONFLUENT_METRICS_ENABLE: "true"
@@ -184,7 +184,7 @@ services:
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 3
       CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zoo1:2181,zoo2:2181,zoo3:2181 
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092
+      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: kafka1:19091,kafka2:19092,kafka3:19093
       CONFLUENT_METRICS_REPORTER_SECURITY_PROTOCOL: SASL_PLAINTEXT
       CONFLUENT_METRICS_REPORTER_TOPIC_CREATE: 'true'
       CONFLUENT_METRICS_ENABLE: "true"
@@ -323,6 +323,37 @@ services:
     networks:
      - event-driven-system
 
+  ksqldb-server:
+      image: confluentinc/ksqldb-server:0.27.2
+      hostname: ksqldb-server
+      container_name: ksqldb-server
+      depends_on:
+        - zoo1
+        - zoo2
+        - zoo3
+        - kafka1
+        - kafka2
+        - kafka3
+        - schema-registry
+      ports:
+        - "8088:8088"
+      volumes:
+        - "./data/ksql/:/opt/ksqldb-udfs"
+      environment:
+        KSQL_LISTENERS: "http://0.0.0.0:8088"
+        KSQL_BOOTSTRAP_SERVERS: "kafka1:19091,kafka2:19092,kafka3:19093"
+        KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+        KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+        KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+        KSQL_KSQL_SERVICE_ID: "KSQL_"
+        KSQL_KSQL_SINK_REPLICAS: 3
+        KSQL_KSQL_STREAMS_REPLICATION_FACTOR: 3
+        KSQL_KSQL_INTERNAL_TOPIC_REPLICAS: 3
+        # Configuration for UDFs
+        KSQL_KSQL_EXTENSION_DIR: "/opt/ksqldb-udfs"
+      networks:
+        - event-driven-system
+
   control-center:
       image: confluentinc/cp-enterprise-control-center
       container_name: control-center
@@ -343,8 +374,8 @@ services:
         CONTROL_CENTER_ZOOKEEPER_CONNECT: "zoo1:2181,zoo2:2181,zoo3:2181"
         CONTROL_CENTER_BOOTSTRAP_SERVERS: "kafka1:19091,kafka2:19092,kafka3:19093"
         CONTROL_CENTER_CONNECT_CONNECT_CLUSTER: kafka-connect:8083
-        # CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
-        # CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
+        CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
+        CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
         CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
         CONTROL_CENTER_REPLICATION_FACTOR: 3
         CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 3
